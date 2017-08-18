@@ -16,5 +16,6 @@ Welcome everyone who want to use this plugin or abvise for this plugin.
 <p><b>customClass</b>: className for toggle</p>
 <p><b>customAction</b>: some function are called when trigger</p>
 
-
+### Attention
+this plugin is run with jQuery.js
 
