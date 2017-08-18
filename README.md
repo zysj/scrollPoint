@@ -1,4 +1,4 @@
-# scrollPoint
+# scrollPoint.js
 scrollPoint pligin for front end of web
 
 this plugin is created refer to plugin named angular-ui-scrollpoint for study.
