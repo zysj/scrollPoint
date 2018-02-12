@@ -36,7 +36,8 @@
         edge:'top',                     //触发类名变动和函数执行的容器滚动条的滚动界限，形式如："bottom","{bottom:80,top:'-80'}","['top','bottom']"
         customClass:'',                 //要添加或删除的类名，只能是类名字符串
         customAction:null,              //要执行的函数，可以是一个函数或函数数组
-        el:null                         //绑定的节点
+        el:null,                         //绑定的节点
+        isInfinite:false                //是否用做无限滚动
     }
 
     scrollPoint.prototype.getRootHeight = function(){
@@ -64,13 +65,18 @@
         return this.hasTarget ? this.target[0].scrollHeight - this.$target[0].clientHeight : getWindowHeight(true);
     }
 
+    scrollPoint.prototype.getScrollerHeight = function(){
+        return this.$target[0].offsetHeight - this.$target[0].clientHeight;
+    }
+
     scrollPoint.prototype.isHit = function(pos){
         var type = pos.type;
         var opera = pos.opera;
         var num = pos.num;
+        var isInfinite = this.option.isInfinite;
         var targetHeight = this.getRootHeight();
-        var scrollTop = this.getScrollTop();
-        var elOffSetTop = this.getElOffSetTop(true);
+        var scrollTop = !isInfinite ? this.getScrollTop() : 0;
+        var elOffSetTop = this.getElOffSetTop(!isInfinite);
         if(type == "top"){
             if(opera){
                 if(opera == "-"){
@@ -96,7 +102,8 @@
                     if(scrollTop<=elOffSetTop*num/100)return true;
                 }
             }else{
-                if(scrollTop<=elOffSetTop)return true;
+                if(!isInfinite && scrollTop<=elOffSetTop)return true;
+                if(isInfinite && scrollTop>=elOffSetTop)return true;
             }
         }
         return false;
@@ -108,7 +115,7 @@
         if(this.isHit(pos)){
             if(this.isHited)return (this.isHited = true);
             this.option.customAction && this.option.customAction();
-            this.$el.hasClass(customClass) || this.$el.addClass(customClass);
+            !this.$el.hasClass(customClass) && this.$el.addClass(customClass);
             this.isHited = true;
             canAct = true;
         }else{
