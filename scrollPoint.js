@@ -2,15 +2,15 @@
  * 该项目根据ui-scrollPoint插件参考开发，但不完全具备其功能，如ui-scrollPoint中的scrollPointAbsolute这个功能是没有的
  */
 
-(function(factory,window){
+(function(factory,$,global){
 
-    if(window === undefined || window === null) return;
+    if(global === undefined || global === null) return;
     if($ === undefined || $ === null) return;
-    if(typeof define == 'function' && typeof define.amd == 'object')define(factory);
-    factory && factory(window);
+    if(typeof define == 'function' && typeof define.amd == 'object')return define(factory);
+    factory && factory(global);
 
-})(function(window,scope){
-    
+})(function(global,scope){
+    global = global || window;
     var edgeType = ["bottom","top"];        //固定界限方向是top或者bottom
 
     function scrollPoint(option){
@@ -61,7 +61,7 @@
         var cacheTop = this.posCache.top;
         var elTop = isCache ? this.$el.hasClass(this.option.customClass) ? TopByParent : cacheTop : this.$el.offset().top;
         var target = this.$target[0];
-        var top = (target.document || target.nodeType == '9') ? 0 : target.offset().top;
+        var top = (target.document || target.nodeType == '9') ? 0 : this.$target.offset().top;
         return this.hasTarget ? (elTop - top) : elTop;
     }
 
@@ -85,7 +85,6 @@
         var targetHeight = this.getRootHeight();
         var scrollTop = !isInfinite ? this.getScrollTop() : 0;
         var elOffSetTop = this.getElOffSetTop(!isInfinite);
-        console.log(targetHeight,elOffSetTop);
         if(type == "top"){
             if(opera){
                 if(opera == "-"){
@@ -166,7 +165,7 @@
     scrollPoint.prototype.init = function(){
         var that = this;
         var pos = parseEdge(this.option.edge);
-        var root = this.hasTarget ? this.$target : $(window);
+        var root = this.hasTarget ? this.$target : $(global);
         this.posCache.top = this.$el.offset().top;
         this.onscroll(pos);
         root.on('scroll', function(){
@@ -175,19 +174,19 @@
     }
 
     function getWindowScrollTop(){
-        if(window.pageYOffset != undefined){
-            return window.pageYOffset;
+        if(global.pageYOffset != undefined){
+            return global.pageYOffset;
         }else {
-            return window.scrollTop;
+            return global.scrollTop;
         }
     }
 
     function getWindowScrollHeight(){
-        return window.document.body.scrollHeight - window.innerHeight;
+        return global.document.body.scrollHeight - global.innerHeight;
     }
 
     function getWindowHeight(isContent){
-        return isContent ? window.document.body.clientHeight : window.innerHeight;
+        return isContent ? global.document.body.clientHeight : global.innerHeight;
     }
 
     function parseForNum(num,pos){
@@ -239,6 +238,6 @@
         return pos;
     }
 
-    return window.scrollPoint = scrollPoint;
+    return (global.scrollPoint = scrollPoint);
 
 },window.jQuery || window.jquery,window)
