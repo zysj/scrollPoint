@@ -2,13 +2,14 @@
  * 该项目根据ui-scrollPoint插件参考开发，但不完全具备其功能，如ui-scrollPoint中的scrollPointAbsolute这个功能是没有的
  */
 
-(function(factory,$,window){
+(function(factory,window){
 
     if(window === undefined || window === null) return;
     if($ === undefined || $ === null) return;
-    factory && factory($,window);
+    if(typeof define == 'function' && typeof define.amd == 'object')define(factory);
+    factory && factory(window);
 
-})(function($,window,scope){
+})(function(window,scope){
     
     var edgeType = ["bottom","top"];        //固定界限方向是top或者bottom
 
@@ -19,11 +20,11 @@
         this.option = $.extend({},this.defaults,option);
         var el = this.option.el;
         this.$el = el ? el instanceof $ ? el : $(el) :  $('[scroll-point]');
-        this.$target = $('.scroll-point-target');
+        this.$target = this.option.target || $('.scroll-point-target');
         this.hasTarget = this.$target.length ? true : false;
 
         if($(this.$el,this.$target).length == 0)this.hasTarget = false;         //判断节点是否在容器当中
-
+        this.$parent = this.$el.parent();
         this.isHited = undefined;               //判断是否
         this.posCache = {};                     //存储当前节点的原始top值
         this.actionsCache = [];                 //存储要执行的函数
@@ -37,11 +38,12 @@
         customClass:'',                 //要添加或删除的类名，只能是类名字符串
         customAction:null,              //要执行的函数，可以是一个函数或函数数组
         el:null,                         //绑定的节点
+        target:null,                    //参考节点
         isInfinite:false                //是否用做无限滚动
     }
 
     scrollPoint.prototype.getRootHeight = function(){
-        return this.hasTarget ? this.$target[0].offsetHeight : getWindowHeight();
+        return this.hasTarget ? this.$target.height() : getWindowHeight();
     }
 
     scrollPoint.prototype.getScrollTop = function(){
@@ -53,8 +55,14 @@
     }
 
     scrollPoint.prototype.getElOffSetTop = function(isCache){
-        var elTop = isCache && this.posCache.top? this.posCache.top : this.$el.offset().top;
-        return this.hasTarget ? (elTop - this.$target.offset().top) : elTop;
+        //var elTop = isCache && this.posCache.top ? this.posCache.top : this.$el.offset().top;
+        var parent = this.$parent;
+        var TopByParent = parent.height()+parent.offset().top;
+        var cacheTop = this.posCache.top;
+        var elTop = isCache ? this.$el.hasClass(this.option.customClass) ? TopByParent : cacheTop : this.$el.offset().top;
+        var target = this.$target[0];
+        var top = (target.document || target.nodeType == '9') ? 0 : target.offset().top;
+        return this.hasTarget ? (elTop - top) : elTop;
     }
 
     scrollPoint.prototype.getRootScrollHeight = function(){
@@ -77,6 +85,7 @@
         var targetHeight = this.getRootHeight();
         var scrollTop = !isInfinite ? this.getScrollTop() : 0;
         var elOffSetTop = this.getElOffSetTop(!isInfinite);
+        console.log(targetHeight,elOffSetTop);
         if(type == "top"){
             if(opera){
                 if(opera == "-"){
@@ -112,6 +121,7 @@
     scrollPoint.prototype.scroll = function(pos){
         var customClass = this.option.customClass;
         var canAct = false;
+        if(!this.$el.hasClass(customClass) && this.isHited)return;
         if(this.isHit(pos)){
             if(this.isHited)return (this.isHited = true);
             this.option.customAction && this.option.customAction();
@@ -121,6 +131,7 @@
         }else{
             if(this.isHited || this.isHited === undefined){
                 this.$el.hasClass(customClass) && this.$el.removeClass(customClass);
+                this.posCache.top = this.$el.offset().top;
                 this.isHited = false;
             }
         }
@@ -228,6 +239,6 @@
         return pos;
     }
 
-    window.scrollPoint = scrollPoint;
+    return window.scrollPoint = scrollPoint;
 
 },window.jQuery || window.jquery,window)
