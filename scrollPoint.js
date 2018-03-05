@@ -21,8 +21,8 @@
         var el = this.option.el;
         this.$el = el ? el instanceof $ ? el : $(el) :  $('[scroll-point]');
         this.$target = this.option.target || $('.scroll-point-target');
+        this.$target = this.$target.length>0 ? this.$target : $(window);
         this.hasTarget = this.$target.length ? true : false;
-
         if($(this.$el,this.$target).length == 0)this.hasTarget = false;         //判断节点是否在容器当中
         this.$parent = this.$el.parent();
         this.isHited = undefined;               //判断是否
@@ -55,13 +55,9 @@
     }
 
     scrollPoint.prototype.getElOffSetTop = function(isCache){
-        //var elTop = isCache && this.posCache.top ? this.posCache.top : this.$el.offset().top;
-        var parent = this.$parent;
-        var TopByParent = parent.height()+parent.offset().top;
-        var cacheTop = this.posCache.top;
-        var elTop = isCache ? this.$el.hasClass(this.option.customClass) ? TopByParent : cacheTop : this.$el.offset().top;
+        var elTop = isCache && this.posCache.top ? this.posCache.top : this.$el.offset().top;
         var target = this.$target[0];
-        var top = (target.document || target.nodeType == '9') ? 0 : this.$target.offset().top;
+        var top = target && (target.document || target.nodeType == '9') ? 0 : this.$target.offset().top;
         return this.hasTarget ? (elTop - top) : elTop;
     }
 
@@ -88,23 +84,24 @@
         if(type == "top"){
             if(opera){
                 if(opera == "-"){
-                    if(scrollTop>=elOffSetTop-num)return true;
-                }else if(opera == "+"){
                     if(scrollTop>=elOffSetTop+num)return true;
+                }else if(opera == "+"){
+                    if(scrollTop>=elOffSetTop-num)return true;
                 }else if(opera == "%"){
                     if(scrollTop>=elOffSetTop*num/100)return true;
                 }
             }else{
-                if(scrollTop>=num)return true;
+                if(scrollTop-elOffSetTop>=num)return true;
             }
         }
         if(type == "bottom"){
             elOffSetTop += this.getElHeight();
-            scrollTop += targetHeight;
             if(opera){
                 if(opera == "-"){
+                    scrollTop += targetHeight;
                     if(scrollTop<=elOffSetTop-num)return true;
                 }else if(opera == "+"){
+                    scrollTop += targetHeight;
                     if(scrollTop<=elOffSetTop+num)return true;
                 }else if(opera == "%"){
                     if(scrollTop<=elOffSetTop*num/100)return true;
@@ -130,7 +127,7 @@
         }else{
             if(this.isHited || this.isHited === undefined){
                 this.$el.hasClass(customClass) && this.$el.removeClass(customClass);
-                this.posCache.top = this.$el.offset().top;
+                // this.posCache.top = this.$el.offset().top;
                 this.isHited = false;
             }
         }
@@ -167,6 +164,9 @@
         var pos = parseEdge(this.option.edge);
         var root = this.hasTarget ? this.$target : $(global);
         this.posCache.top = this.$el.offset().top;
+        var left = this.$el.offset().left;
+        var width = this.$el.width();
+        this.$el.css({'left':left,'width':width});
         this.onscroll(pos);
         root.on('scroll', function(){
             that.onscroll(pos);
