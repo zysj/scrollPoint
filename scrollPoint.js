@@ -149,6 +149,16 @@
         }
     }
 
+    /**
+     * 重载元素的偏移值
+     */
+    scrollPoint.prototype.reload = function(){
+        var customClass = this.option.customClass;
+        var $el = this.$el;
+        if($el.hasClass(customClass))$el.removeClass(customClass);
+        this.posCache.top = $el.offset().top;
+    }
+
     scrollPoint.prototype.initActions = function(){
         var action = this.option.customAction;
         if(typeof action == 'function'){
